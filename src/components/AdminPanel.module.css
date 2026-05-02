@@ -1,0 +1,82 @@
+.adminPanel {
+  background: rgba(255, 69, 58, 0.1);
+  border: 1px solid rgba(255, 69, 58, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.adminTitle {
+  font-size: 16px;
+  font-weight: bold;
+  color: #ff453a;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.raceSelectGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.raceRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.raceName {
+  flex: 1;
+  font-size: 14px;
+  color: #ddd;
+}
+
+.horseSelect {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: #222;
+  color: #fff;
+  border: 1px solid #444;
+  outline: none;
+}
+
+.saveBtn {
+  padding: 6px 16px;
+  background: #ff453a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.saveBtn:hover {
+  background: #ff6961;
+}
+
+.saveBtn:disabled {
+  background: #555;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.clearBtn {
+  padding: 6px 12px;
+  background: transparent;
+  color: #ccc;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.clearBtn:hover {
+  background: #333;
+}

@@ -1,0 +1,56 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--button-bg);
+  color: var(--text-color);
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:active {
+  transform: scale(0.9);
+}
+
+.button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button.plus:not(:disabled) {
+  color: var(--accent-red);
+  border-color: rgba(255, 71, 87, 0.3);
+}
+
+.button.plus:not(:disabled):active {
+  background-color: rgba(255, 71, 87, 0.2);
+}
+
+.pointDisplay {
+  min-width: 24px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+  transition: color 0.3s ease;
+}
+
+.pointDisplay.hasPoints {
+  color: var(--accent-gold);
+}
+
+.pointDisplay.maxPoints {
+  color: var(--accent-red);
+}

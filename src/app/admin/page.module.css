@@ -1,0 +1,145 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  color: #fff;
+}
+
+.title {
+  font-size: 28px;
+  margin-bottom: 24px;
+  color: var(--accent-gold);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 12px;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #111;
+  color: #fff;
+  font-size: 16px;
+}
+
+.textarea {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #111;
+  color: #fff;
+  font-size: 14px;
+  min-height: 150px;
+  font-family: monospace;
+}
+
+.btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.8;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnPrimary {
+  background: var(--accent-gold);
+  color: #000;
+}
+
+.btnOdds {
+  background: #4CAF50;
+  color: #fff;
+}
+
+.btnSecondary {
+  background: #444;
+  color: #fff;
+}
+
+.btnDanger {
+  background: var(--accent-red);
+  color: #fff;
+}
+
+.errorBox {
+  background: rgba(255, 69, 58, 0.1);
+  border: 1px solid var(--accent-red);
+  color: var(--accent-red);
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+/* プレビュー周り */
+.previewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.previewRace {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.previewRaceTitle {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--accent-gold);
+  margin-bottom: 12px;
+}
+
+.previewHorse {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid #222;
+  font-size: 14px;
+}
+
+.previewActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color);
+}

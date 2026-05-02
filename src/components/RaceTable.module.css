@@ -1,0 +1,123 @@
+.raceContainer {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+}
+
+.raceHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.raceTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--accent-gold);
+}
+
+.pointsInfo {
+  font-size: 14px;
+  color: #aaa;
+}
+
+.pointsInfo.maxReached {
+  color: var(--accent-red);
+  font-weight: bold;
+}
+
+.horseList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.horseRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.horseRow.hasMyPoints {
+  background-color: rgba(212, 175, 55, 0.1);
+  border-left: 3px solid var(--accent-gold);
+}
+
+.horseRow.highGroupPoints {
+  background-color: rgba(255, 71, 87, 0.1);
+  border-right: 3px solid var(--accent-red);
+}
+
+.horseRow.winner {
+  background-color: rgba(46, 204, 113, 0.2);
+  border: 2px solid #2ecc71;
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);
+}
+
+.horseRow.loser {
+  opacity: 0.3;
+  filter: grayscale(100%);
+  pointer-events: none;
+}
+
+.winnerBadge {
+  color: #2ecc71;
+  font-weight: bold;
+  font-size: 14px;
+  margin-left: 8px;
+}
+
+.horseInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.horseNumber {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 28px;
+  height: 28px;
+  background-color: #333;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.horseNameGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.horseName {
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.horseOdds {
+  font-size: 12px;
+  color: #aaa;
+  margin-left: 8px;
+  font-weight: normal;
+}
+
+.groupPointsBadge {
+  font-size: 12px;
+  color: var(--accent-gold);
+  font-weight: bold;
+  margin-top: 2px;
+}

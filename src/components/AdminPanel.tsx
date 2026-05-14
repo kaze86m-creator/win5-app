@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 import { doc, setDoc, deleteDoc, collection, getDocs, addDoc } from 'firebase/firestore';
 
 type Horse = { id: string; number: number; name: string };
-type Race = { id: string; raceNumber: number; raceName: string; horses: Horse[] };
+type Race = { id: string; raceNumber: number; raceName: string; eventId?: string; horses: Horse[] };
 
 type RaceResult = {
   firstPlaceId: string;

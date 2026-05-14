@@ -7,7 +7,7 @@ import { doc, setDoc, collection, getDocs } from 'firebase/firestore';
 import Link from 'next/link';
 
 type Horse = { id: string; number: number; name: string; odds?: string };
-type Race = { id: string; raceNumber: number; raceName: string; horses: Horse[] };
+type Race = { id: string; raceNumber: number; raceName: string; eventId?: string; horses: Horse[] };
 
 export default function AdminPage() {
   const [scrapeUrl, setScrapeUrl] = useState('https://race.netkeiba.com/win5/');

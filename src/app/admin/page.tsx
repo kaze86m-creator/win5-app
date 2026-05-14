@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 import { doc, setDoc, collection, getDocs } from 'firebase/firestore';
 import Link from 'next/link';
 
-type Horse = { id: string; number: number; name: string; odds?: string };
+type Horse = { id: string; number: number; name: string; odds?: string; popularity?: number };
 type Race = { id: string; raceNumber: number; raceName: string; eventId?: string; horses: Horse[] };
 
 export default function AdminPage() {
@@ -77,22 +77,66 @@ export default function AdminPage() {
   const handleManualParse = () => {
     setError(null);
     const races: Race[] = [];
-    const lines = manualText.split('\n').map(l => l.trim()).filter(l => l);
+    const rawLines = manualText.split('\n').map(l => l.trim());
+    const skipWords = ['編集', '◎', '◯', '▲', '△', '☆', '✓', '消', '--'];
+    const lines = rawLines.filter(l => l && !skipWords.includes(l) && !/^[◎◯▲△☆✓消]+$/.test(l));
 
     let currentRace: Race | null = null;
     let raceCount = 0;
+    let horseCount = 0;
 
-    for (const line of lines) {
-      // レース名らしき行（数字で始まらない行、または「WIN」などの文字を含む行）
-      // 簡易的に「数字＋スペース＋文字」に一致しなければレース名として扱う
-      const horseMatch = line.match(/^(\d+)\s+(.+)$/);
-      
-      if (!horseMatch) {
-        // レース区切り
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // 1. 旧フォーマット (馬番 馬名)
+      const oldMatch = line.match(/^(\d+)\s+(.+)$/);
+      if (oldMatch) {
+        if (!currentRace) {
+          raceCount = 1;
+          horseCount = 0;
+          currentRace = { id: `${eventId}_race1`, eventId, raceNumber: 1, raceName: "WIN1", horses: [] };
+        }
+        currentRace.horses.push({
+          id: `${eventId}_h${raceCount}-${oldMatch[1]}`,
+          number: parseInt(oldMatch[1], 10),
+          name: oldMatch[2].trim()
+        });
+        continue;
+      }
+
+      // 2. 新フォーマット (馬名の次の行がオッズ・人気の連結)
+      const nextLine = lines[i + 1];
+      let newMatch = false;
+      if (nextLine) {
+        const infoMatch = nextLine.match(/([\d]+\.\d)(\d{1,2})$/);
+        // 現在の行が情報行ではなく、次の行が情報行である場合
+        if (infoMatch && !line.match(/([\d]+\.\d)(\d{1,2})$/)) {
+          newMatch = true;
+          if (!currentRace) {
+            raceCount = 1;
+            horseCount = 0;
+            currentRace = { id: `${eventId}_race1`, eventId, raceNumber: 1, raceName: "WIN1", horses: [] };
+          }
+          horseCount++;
+          currentRace.horses.push({
+            id: `${eventId}_h${raceCount}-${horseCount}`,
+            number: horseCount,
+            name: line,
+            odds: infoMatch[1],
+            popularity: parseInt(infoMatch[2], 10)
+          });
+          i++; // 次の行(情報行)は消費したのでスキップ
+          continue;
+        }
+      }
+
+      // 3. どちらでもない場合はレース名とみなす
+      if (!newMatch) {
         if (currentRace && currentRace.horses.length > 0) {
           races.push(currentRace);
         }
         raceCount++;
+        horseCount = 0;
         currentRace = {
           id: `${eventId}_race${raceCount}`,
           eventId: eventId,
@@ -100,22 +144,6 @@ export default function AdminPage() {
           raceName: line,
           horses: []
         };
-      } else {
-        if (!currentRace) {
-          raceCount = 1;
-          currentRace = {
-            id: `${eventId}_race1`,
-            eventId: eventId,
-            raceNumber: 1,
-            raceName: "WIN1",
-            horses: []
-          };
-        }
-        currentRace.horses.push({
-          id: `${eventId}_h${raceCount}-${horseMatch[1]}`,
-          number: parseInt(horseMatch[1], 10),
-          name: horseMatch[2].trim()
-        });
       }
     }
     
@@ -414,7 +442,10 @@ export default function AdminPage() {
                 {race.horses.map((h) => (
                   <div key={h.id} className={styles.previewHorse}>
                     <span style={{ width: '20px', fontWeight: 'bold' }}>{h.number}</span>
-                    <span>{h.name}</span>
+                    <span>
+                      {h.name}
+                      {h.odds && h.popularity && <span style={{ color: '#aaa', fontSize: '12px', marginLeft: '8px' }}>({h.odds}倍 / {h.popularity}人気)</span>}
+                    </span>
                   </div>
                 ))}
               </div>

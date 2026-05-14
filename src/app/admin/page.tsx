@@ -93,9 +93,9 @@ export default function AdminPage() {
       const oldMatch = line.match(/^(\d+)\s+(.+)$/);
       if (oldMatch) {
         if (!currentRace) {
-          raceCount = 1;
+          raceCount++;
           horseCount = 0;
-          currentRace = { id: `${eventId}_race1`, eventId, raceNumber: 1, raceName: "WIN1", horses: [] };
+          currentRace = { id: `${eventId}_race${raceCount}`, eventId, raceNumber: raceCount, raceName: `WIN${raceCount}`, horses: [] };
         }
         currentRace.horses.push({
           id: `${eventId}_h${raceCount}-${oldMatch[1]}`,
@@ -114,9 +114,9 @@ export default function AdminPage() {
         if (infoMatch && !line.match(/([\d]+\.\d)\s*(\d{1,2})\s*$/)) {
           newMatch = true;
           if (!currentRace) {
-            raceCount = 1;
+            raceCount++;
             horseCount = 0;
-            currentRace = { id: `${eventId}_race1`, eventId, raceNumber: 1, raceName: "WIN1", horses: [] };
+            currentRace = { id: `${eventId}_race${raceCount}`, eventId, raceNumber: raceCount, raceName: `WIN${raceCount}`, horses: [] };
           }
           horseCount++;
           currentRace.horses.push({

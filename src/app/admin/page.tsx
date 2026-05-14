@@ -108,9 +108,9 @@ export default function AdminPage() {
       const nextLine = lines[i + 1];
       let newMatch = false;
       if (nextLine) {
-        const infoMatch = nextLine.match(/([\d]+\.\d)(\d{1,2})$/);
+        const infoMatch = nextLine.match(/([\d]+\.\d)\s*(\d{1,2})\s*$/);
         // 現在の行が情報行ではなく、次の行が情報行である場合
-        if (infoMatch && !line.match(/([\d]+\.\d)(\d{1,2})$/)) {
+        if (infoMatch && !line.match(/([\d]+\.\d)\s*(\d{1,2})\s*$/)) {
           newMatch = true;
           if (!currentRace) {
             raceCount = 1;
@@ -152,7 +152,7 @@ export default function AdminPage() {
     }
 
     if (races.length === 0) {
-      setError('テキストから出馬表を解析できませんでした。フォーマット（馬番 馬名）を確認してください。');
+      setError('テキストから出馬表を解析できませんでした。形式を確認してください。');
       setPreviewRaces(null);
     } else {
       setPreviewRaces(races);

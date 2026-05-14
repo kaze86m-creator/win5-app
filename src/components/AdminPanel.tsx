@@ -101,9 +101,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
 
       const userStatsMap: Record<string, UserTempStats> = {};
 
+      const currentRaceIds = new Set(races.map(r => r.id));
+
       votesSnap.docs.forEach(docSnap => {
         const vote = docSnap.data();
         const { userId: vUserId, raceId, horseId } = vote;
+
+        // 現在表示されているイベント（曜日）の投票のみを集計対象とする
+        if (!currentRaceIds.has(raceId)) return;
 
         if (!userStatsMap[vUserId]) {
           userStatsMap[vUserId] = { 
@@ -130,12 +135,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
 
       const today = new Date();
       const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const currentEventId = races.length > 0 ? (races[0] as any).eventId || 'sunday' : 'sunday';
 
       // 2. Save stats to userStats collection
       for (const [uid, stats] of Object.entries(userStatsMap)) {
         await addDoc(collection(db, 'userStats'), {
           userId: uid,
           date: dateStr,
+          eventId: currentEventId,
           totalVotes: stats.totalVotes,
           totalRaces: stats.totalRaces.size,
           winHitRacesCount: stats.winHitRaces.size,

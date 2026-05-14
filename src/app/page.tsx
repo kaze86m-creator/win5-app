@@ -27,6 +27,7 @@ export default function Home() {
   const [userMaxPoints, setUserMaxPoints] = useState<number>(3); // 基本3pt
   const [authLoading, setAuthLoading] = useState(true);
   const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const [currentEventId, setCurrentEventId] = useState<'saturday' | 'sunday'>('sunday');
 
   // horseId -> my points
   const [pointsData, setPointsData] = useState<Record<string, number>>({});
@@ -118,7 +119,12 @@ export default function Home() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedRaces: Race[] = [];
       snapshot.docs.forEach(docSnap => {
-        fetchedRaces.push(docSnap.data() as Race);
+        const data = docSnap.data() as Race;
+        // 互換性のため eventId が無いものは sunday として扱う
+        const raceEventId = (data as any).eventId || 'sunday';
+        if (raceEventId === currentEventId) {
+          fetchedRaces.push(data);
+        }
       });
       setRaces(fetchedRaces);
     }, (error) => {
@@ -126,7 +132,7 @@ export default function Home() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [currentEventId]);
 
   const handleUpdatePoint = async (horseId: string, raceId: string, currentMyPoint: number, delta: number) => {
     if (!userId) return;
@@ -151,6 +157,7 @@ export default function Home() {
           userId: userId,
           raceId: raceId,
           horseId: horseId,
+          eventId: currentEventId,
           points: nextPoint,
           updatedAt: new Date().toISOString()
         });
@@ -165,8 +172,10 @@ export default function Home() {
     await signOut(auth);
   };
 
-  // 全レースの消費ポイント合計を計算
-  const totalPointsUsed = Object.values(pointsData).reduce((sum, p) => sum + p, 0);
+  // 現在の曜日（表示中）のレースの消費ポイント合計を計算
+  const totalPointsUsed = races.reduce((sum, race) => {
+    return sum + race.horses.reduce((horseSum, horse) => horseSum + (pointsData[horse.id] || 0), 0);
+  }, 0);
   const maxTotalPoints = races.length * userMaxPoints;
 
   const favoriteHorses = [];
@@ -247,6 +256,41 @@ export default function Home() {
       </header>
 
       {isStatsOpen && <StatsDashboard onClose={() => setIsStatsOpen(false)} />}
+
+      <div style={{ display: 'flex', gap: '8px', padding: '0 20px', maxWidth: '1200px', margin: '0 auto 0 auto' }}>
+        <button 
+          onClick={() => setCurrentEventId('saturday')}
+          style={{ 
+            padding: '12px 24px', 
+            background: currentEventId === 'saturday' ? 'var(--card-bg)' : 'rgba(255,255,255,0.05)',
+            color: currentEventId === 'saturday' ? 'var(--accent-gold)' : '#aaa',
+            border: 'none',
+            borderRadius: '8px 8px 0 0',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            flex: 1,
+            borderBottom: currentEventId === 'saturday' ? '2px solid var(--accent-gold)' : 'none'
+          }}
+        >
+          土曜日
+        </button>
+        <button 
+          onClick={() => setCurrentEventId('sunday')}
+          style={{ 
+            padding: '12px 24px', 
+            background: currentEventId === 'sunday' ? 'var(--card-bg)' : 'rgba(255,255,255,0.05)',
+            color: currentEventId === 'sunday' ? 'var(--accent-gold)' : '#aaa',
+            border: 'none',
+            borderRadius: '8px 8px 0 0',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            flex: 1,
+            borderBottom: currentEventId === 'sunday' ? '2px solid var(--accent-gold)' : 'none'
+          }}
+        >
+          日曜日
+        </button>
+      </div>
 
       <div className={styles.layoutWrapper}>
         <div className={styles.dashboard}>

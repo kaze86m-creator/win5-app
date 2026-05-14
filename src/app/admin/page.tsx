@@ -11,6 +11,7 @@ type Race = { id: string; raceNumber: number; raceName: string; horses: Horse[] 
 
 export default function AdminPage() {
   const [scrapeUrl, setScrapeUrl] = useState('https://race.netkeiba.com/win5/');
+  const [eventId, setEventId] = useState<'saturday' | 'sunday'>('sunday');
   const [manualText, setManualText] = useState('');
   const [manualOddsText, setManualOddsText] = useState('');
   const [manualOddsRaceId, setManualOddsRaceId] = useState('');
@@ -51,7 +52,16 @@ export default function AdminPage() {
         throw new Error(data.error || 'スクレイピングに失敗しました。');
       }
 
-      setPreviewRaces(data.races);
+      const mappedRaces = data.races.map((r: any) => ({
+        ...r,
+        id: `${eventId}_${r.id}`,
+        eventId: eventId,
+        horses: r.horses.map((h: any) => ({
+          ...h,
+          id: `${eventId}_${h.id}`
+        }))
+      }));
+      setPreviewRaces(mappedRaces);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -84,7 +94,8 @@ export default function AdminPage() {
         }
         raceCount++;
         currentRace = {
-          id: `race${raceCount}`,
+          id: `${eventId}_race${raceCount}`,
+          eventId: eventId,
           raceNumber: raceCount,
           raceName: line,
           horses: []
@@ -93,14 +104,15 @@ export default function AdminPage() {
         if (!currentRace) {
           raceCount = 1;
           currentRace = {
-            id: `race1`,
+            id: `${eventId}_race1`,
+            eventId: eventId,
             raceNumber: 1,
             raceName: "WIN1",
             horses: []
           };
         }
         currentRace.horses.push({
-          id: `h${raceCount}-${horseMatch[1]}`,
+          id: `${eventId}_h${raceCount}-${horseMatch[1]}`,
           number: parseInt(horseMatch[1], 10),
           name: horseMatch[2].trim()
         });
@@ -171,11 +183,12 @@ export default function AdminPage() {
       let updatedCount = 0;
       for (const docSnap of racesSnap.docs) {
         const raceData = docSnap.data() as Race;
-        const updateData = racesUpdates.find((u: any) => u.id === raceData.id);
+        const updateData = racesUpdates.find((u: any) => u.id === raceData.id.replace(`${eventId}_`, ''));
         if (updateData) {
           const newHorses = raceData.horses.map(h => {
-            if (updateData.oddsMap[h.id] !== undefined) {
-              return { ...h, odds: updateData.oddsMap[h.id] };
+            const shortHorseId = h.id.replace(`${eventId}_`, '');
+            if (updateData.oddsMap[shortHorseId] !== undefined) {
+              return { ...h, odds: updateData.oddsMap[shortHorseId] };
             }
             return h;
           });
@@ -281,6 +294,21 @@ export default function AdminPage() {
         <Link href="/" style={{ color: '#ccc', textDecoration: 'underline' }}>メイン画面に戻る</Link>
       </div>
 
+      <div className={styles.card} style={{ marginBottom: '16px', background: 'var(--card-bg-light)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span style={{ fontWeight: 'bold' }}>📅 対象曜日:</span>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+            <input type="radio" name="eventId" value="saturday" checked={eventId === 'saturday'} onChange={() => setEventId('saturday')} />
+            土曜日
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+            <input type="radio" name="eventId" value="sunday" checked={eventId === 'sunday'} onChange={() => setEventId('sunday')} />
+            日曜日
+          </label>
+        </div>
+        <p style={{ fontSize: '12px', color: '#aaa', marginTop: '8px' }}>※ここで選択した曜日に紐づけてデータが保存されます。</p>
+      </div>
+
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>🌐 自動取得 (APIスクレイピング)</h2>
         <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '16px' }}>
@@ -348,7 +376,7 @@ export default function AdminPage() {
             <option value="">-- 更新するレースを選択 --</option>
             {dbRaces.map(race => (
               <option key={race.id} value={race.id}>
-                WIN{race.raceNumber} : {race.raceName}
+                WIN{race.raceNumber} ({race.id.includes('saturday') ? '土' : '日'}) : {race.raceName}
               </option>
             ))}
           </select>

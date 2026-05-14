@@ -156,7 +156,39 @@ export default function AdminPage() {
       setError('テキストから出馬表を解析できませんでした。形式を確認してください。');
       setPreviewRaces(null);
     } else {
-      setPreviewRaces(races);
+      if (selectedRaceIndex !== 'all') {
+        // 単一レース更新: パース結果を既存の dbRaces にマージして previewRaces (全5レース分) を生成する
+        if (dbRaces.length === 0) {
+          setError('ベースとなるレースデータがありません。先にすべてのレースを自動取得するか手動保存してください。');
+          return;
+        }
+        
+        const mergedRaces = dbRaces.map(dbRace => {
+          // 選択されたレース番号に一致するパース結果を探す
+          const parsedRace = races.find(r => r.raceNumber === dbRace.raceNumber);
+          if (parsedRace && parsedRace.raceNumber === selectedRaceIndex) {
+            const newHorses = dbRace.horses.map(dbHorse => {
+              const updatedHorse = parsedRace.horses.find(h => 
+                dbHorse.name.includes(h.name) || h.name.includes(dbHorse.name)
+              );
+              if (updatedHorse) {
+                return {
+                  ...dbHorse,
+                  odds: updatedHorse.odds || dbHorse.odds,
+                  popularity: updatedHorse.popularity || dbHorse.popularity
+                };
+              }
+              return dbHorse;
+            });
+            return { ...dbRace, horses: newHorses };
+          }
+          return dbRace;
+        });
+        
+        setPreviewRaces(mergedRaces);
+      } else {
+        setPreviewRaces(races);
+      }
     }
   };
 
@@ -164,7 +196,7 @@ export default function AdminPage() {
   const handleSaveToFirestore = async () => {
     if (!previewRaces) return;
 
-    if (selectedRaceIndex === 'all' && previewRaces.length !== 5) {
+    if (previewRaces.length !== 5) {
       if (!confirm(`レース数が5ではありません（現在${previewRaces.length}レース）。本当に保存しますか？`)) {
         return;
       }
@@ -175,35 +207,13 @@ export default function AdminPage() {
       for (const race of previewRaces) {
         const raceRef = doc(db, 'races', race.id);
         
+        // previewRaces にはすでにマージ済みの完全なデータが入っているため、そのまま上書き保存する
         if (selectedRaceIndex !== 'all') {
-          // 単一レース更新: 既存データを取得してオッズと人気をマージ
-          const existingSnap = await getDoc(raceRef);
-          if (existingSnap.exists()) {
-            const existingRace = existingSnap.data() as Race;
-            const newHorses = existingRace.horses.map(existingHorse => {
-              // 抽出された馬の中から、名前が部分一致するものを探す（空白などが混じる可能性があるため）
-              const updatedHorse = race.horses.find(h => 
-                existingHorse.name.includes(h.name) || h.name.includes(existingHorse.name)
-              );
-              if (updatedHorse) {
-                return {
-                  ...existingHorse,
-                  odds: updatedHorse.odds || existingHorse.odds,
-                  popularity: updatedHorse.popularity || existingHorse.popularity
-                };
-              }
-              return existingHorse;
-            });
-            
-            await setDoc(raceRef, {
-              ...existingRace,
-              horses: newHorses,
-              oddsUpdatedAt: new Date().toISOString()
-            });
-          } else {
-            // 既存データがない場合はそのまま保存
+          // 単一レース更新時は対象のレースのみを保存する
+          if (race.raceNumber === selectedRaceIndex) {
             await setDoc(raceRef, {
               ...race,
+              oddsUpdatedAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             });
           }

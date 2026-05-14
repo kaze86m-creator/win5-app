@@ -11,8 +11,12 @@ type UserStat = {
   userId: string;
   userName: string;
   totalVotes: number;
-  winHits: number;
-  placedHits: number;
+  totalRaces: number;
+  winHitRacesCount: number;
+  placedHitRacesCount: number;
+  // 互換性のための古いフィールド（任意）
+  winHits?: number;
+  placedHits?: number;
   date: string; // YYYY-MM-DD
 };
 
@@ -41,9 +45,10 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ onClose }) => {
           fetchedStats.push({
             userId: data.userId,
             userName: uMap[data.userId] || 'Unknown',
-            totalVotes: data.totalVotes,
-            winHits: data.winHits,
-            placedHits: data.placedHits,
+            totalVotes: data.totalVotes || 0,
+            totalRaces: data.totalRaces || (data.totalVotes || 0), // 古いデータは投票数=レース数とみなす
+            winHitRacesCount: data.winHitRacesCount ?? data.winHits ?? 0,
+            placedHitRacesCount: data.placedHitRacesCount ?? data.placedHits ?? 0,
             date: data.date
           });
         });
@@ -73,21 +78,22 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ onClose }) => {
       return true; // 'all'
     });
 
-    const aggregated: Record<string, { userName: string; totalVotes: number; winHits: number; placedHits: number }> = {};
+    const aggregated: Record<string, { userName: string; totalVotes: number; totalRaces: number; winHitRacesCount: number; placedHitRacesCount: number }> = {};
     
     filtered.forEach(stat => {
       if (!aggregated[stat.userId]) {
-        aggregated[stat.userId] = { userName: stat.userName, totalVotes: 0, winHits: 0, placedHits: 0 };
+        aggregated[stat.userId] = { userName: stat.userName, totalVotes: 0, totalRaces: 0, winHitRacesCount: 0, placedHitRacesCount: 0 };
       }
       aggregated[stat.userId].totalVotes += stat.totalVotes;
-      aggregated[stat.userId].winHits += stat.winHits;
-      aggregated[stat.userId].placedHits += stat.placedHits;
+      aggregated[stat.userId].totalRaces += stat.totalRaces;
+      aggregated[stat.userId].winHitRacesCount += stat.winHitRacesCount;
+      aggregated[stat.userId].placedHitRacesCount += stat.placedHitRacesCount;
     });
 
     // Calculate rates and sort
     const resultList = Object.values(aggregated).map(agg => {
-      const winRate = agg.totalVotes > 0 ? (agg.winHits / agg.totalVotes) * 100 : 0;
-      const placedRate = agg.totalVotes > 0 ? (agg.placedHits / agg.totalVotes) * 100 : 0;
+      const winRate = agg.totalRaces > 0 ? (agg.winHitRacesCount / agg.totalRaces) * 100 : 0;
+      const placedRate = agg.totalRaces > 0 ? (agg.placedHitRacesCount / agg.totalRaces) * 100 : 0;
       return { ...agg, winRate, placedRate };
     });
 
@@ -155,10 +161,10 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ onClose }) => {
                     </td>
                     <td style={{ fontWeight: 'bold' }}>{data.userName}</td>
                     <td style={{ textAlign: 'center', color: 'var(--accent-gold)', fontWeight: 'bold' }}>
-                      {data.winRate.toFixed(1)}% <span style={{ fontSize: '11px', color: '#888', fontWeight: 'normal' }}>({data.winHits}回)</span>
+                      {data.winRate.toFixed(1)}% <span style={{ fontSize: '11px', color: '#888', fontWeight: 'normal' }}>({data.winHitRacesCount}/{data.totalRaces})</span>
                     </td>
                     <td style={{ textAlign: 'center', color: '#2ecc71' }}>
-                      {data.placedRate.toFixed(1)}% <span style={{ fontSize: '11px', color: '#888' }}>({data.placedHits}回)</span>
+                      {data.placedRate.toFixed(1)}% <span style={{ fontSize: '11px', color: '#888' }}>({data.placedHitRacesCount}/{data.totalRaces})</span>
                     </td>
                     <td style={{ textAlign: 'center', color: '#aaa' }}>{data.totalVotes}</td>
                   </tr>

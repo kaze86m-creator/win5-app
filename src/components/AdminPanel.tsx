@@ -91,25 +91,39 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
     try {
       // 1. Get all votes
       const votesSnap = await getDocs(collection(db, 'votes'));
-      const userVotes: Record<string, { totalVotes: number; winHits: number; placedHits: number }> = {};
+      
+      type UserTempStats = {
+        totalVotes: number;
+        totalRaces: Set<string>;
+        winHitRaces: Set<string>;
+        placedHitRaces: Set<string>;
+      };
+
+      const userStatsMap: Record<string, UserTempStats> = {};
 
       votesSnap.docs.forEach(docSnap => {
         const vote = docSnap.data();
         const { userId: vUserId, raceId, horseId } = vote;
 
-        if (!userVotes[vUserId]) {
-          userVotes[vUserId] = { totalVotes: 0, winHits: 0, placedHits: 0 };
+        if (!userStatsMap[vUserId]) {
+          userStatsMap[vUserId] = { 
+            totalVotes: 0, 
+            totalRaces: new Set(), 
+            winHitRaces: new Set(), 
+            placedHitRaces: new Set() 
+          };
         }
 
-        userVotes[vUserId].totalVotes += 1;
+        userStatsMap[vUserId].totalVotes += 1;
+        userStatsMap[vUserId].totalRaces.add(raceId);
 
         const result = resultsData[raceId];
         if (result) {
           if (horseId === result.firstPlaceId) {
-            userVotes[vUserId].winHits += 1;
-            userVotes[vUserId].placedHits += 1; // 1着も複勝的にヒット
+            userStatsMap[vUserId].winHitRaces.add(raceId);
+            userStatsMap[vUserId].placedHitRaces.add(raceId);
           } else if (horseId === result.secondPlaceId || horseId === result.thirdPlaceId) {
-            userVotes[vUserId].placedHits += 1;
+            userStatsMap[vUserId].placedHitRaces.add(raceId);
           }
         }
       });
@@ -118,13 +132,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
       const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
       // 2. Save stats to userStats collection
-      for (const [uid, stats] of Object.entries(userVotes)) {
+      for (const [uid, stats] of Object.entries(userStatsMap)) {
         await addDoc(collection(db, 'userStats'), {
           userId: uid,
           date: dateStr,
           totalVotes: stats.totalVotes,
-          winHits: stats.winHits,
-          placedHits: stats.placedHits,
+          totalRaces: stats.totalRaces.size,
+          winHitRacesCount: stats.winHitRaces.size,
+          placedHitRacesCount: stats.placedHitRaces.size,
           timestamp: new Date().toISOString()
         });
       }

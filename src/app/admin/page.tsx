@@ -157,13 +157,15 @@ export default function AdminPage() {
       setPreviewRaces(null);
     } else {
       if (selectedRaceIndex !== 'all') {
-        // 単一レース更新: パース結果を既存の dbRaces にマージして previewRaces (全5レース分) を生成する
-        if (dbRaces.length === 0) {
+        // 単一レース更新: パース結果を既存の dbRaces (現在のイベントのもの) にマージして previewRaces (全5レース分) を生成する
+        const eventDbRaces = dbRaces.filter(r => (r.eventId || 'sunday') === eventId);
+        
+        if (eventDbRaces.length === 0) {
           setError('ベースとなるレースデータがありません。先にすべてのレースを自動取得するか手動保存してください。');
           return;
         }
         
-        const mergedRaces = dbRaces.map(dbRace => {
+        const mergedRaces = eventDbRaces.map(dbRace => {
           // 選択されたレース番号に一致するパース結果を探す
           const parsedRace = races.find(r => r.raceNumber === dbRace.raceNumber);
           if (parsedRace && parsedRace.raceNumber === selectedRaceIndex) {

@@ -151,7 +151,34 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
         });
       }
 
-      alert('成績のアーカイブが完了しました！ダッシュボードで確認できます。');
+      // 3. 次週に向けたデータのリセット (対象曜日のみ)
+      
+      // 3-1. 投票データの削除
+      for (const docSnap of votesSnap.docs) {
+        const vote = docSnap.data();
+        if (currentRaceIds.has(vote.raceId)) {
+          await deleteDoc(doc(db, 'votes', docSnap.id));
+        }
+      }
+
+      // 3-2. レース結果の削除
+      for (const raceId of currentRaceIds) {
+        await deleteDoc(doc(db, 'results', raceId));
+      }
+
+      // 3-3. 出馬表のリセット
+      for (const race of races) {
+        const raceRef = doc(db, 'races', race.id);
+        await setDoc(raceRef, {
+          ...race,
+          raceName: `WIN${race.raceNumber}`,
+          horses: [],
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      const dayName = currentEventId === 'saturday' ? '土曜日' : '日曜日';
+      alert(`【${dayName}】の成績アーカイブと次週向けのリセットが完了しました！`);
     } catch (error) {
       console.error(error);
       alert('アーカイブ中にエラーが発生しました');

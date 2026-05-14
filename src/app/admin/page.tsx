@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { db } from '@/lib/firebase';
-import { doc, setDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, setDoc, collection, getDocs, getDoc } from 'firebase/firestore';
 import Link from 'next/link';
 
 type Horse = { id: string; number: number; name: string; odds?: string; popularity?: number };
@@ -12,6 +12,7 @@ type Race = { id: string; raceNumber: number; raceName: string; eventId?: string
 export default function AdminPage() {
   const [scrapeUrl, setScrapeUrl] = useState('https://race.netkeiba.com/win5/');
   const [eventId, setEventId] = useState<'saturday' | 'sunday'>('sunday');
+  const [selectedRaceIndex, setSelectedRaceIndex] = useState<number | 'all'>('all');
   const [manualText, setManualText] = useState('');
   const [manualOddsText, setManualOddsText] = useState('');
   const [manualOddsRaceId, setManualOddsRaceId] = useState('');
@@ -82,7 +83,7 @@ export default function AdminPage() {
     const lines = rawLines.filter(l => l && !skipWords.includes(l) && !/^[◎◯▲△☆✓消]+$/.test(l));
 
     let currentRace: Race | null = null;
-    let raceCount = 0;
+    let raceCount = selectedRaceIndex === 'all' ? 0 : selectedRaceIndex - 1;
     let horseCount = 0;
 
     for (let i = 0; i < lines.length; i++) {
@@ -163,7 +164,7 @@ export default function AdminPage() {
   const handleSaveToFirestore = async () => {
     if (!previewRaces) return;
 
-    if (previewRaces.length !== 5) {
+    if (selectedRaceIndex === 'all' && previewRaces.length !== 5) {
       if (!confirm(`レース数が5ではありません（現在${previewRaces.length}レース）。本当に保存しますか？`)) {
         return;
       }
@@ -173,10 +174,46 @@ export default function AdminPage() {
     try {
       for (const race of previewRaces) {
         const raceRef = doc(db, 'races', race.id);
-        await setDoc(raceRef, {
-          ...race,
-          updatedAt: new Date().toISOString()
-        });
+        
+        if (selectedRaceIndex !== 'all') {
+          // 単一レース更新: 既存データを取得してオッズと人気をマージ
+          const existingSnap = await getDoc(raceRef);
+          if (existingSnap.exists()) {
+            const existingRace = existingSnap.data() as Race;
+            const newHorses = existingRace.horses.map(existingHorse => {
+              // 抽出された馬の中から、名前が部分一致するものを探す（空白などが混じる可能性があるため）
+              const updatedHorse = race.horses.find(h => 
+                existingHorse.name.includes(h.name) || h.name.includes(existingHorse.name)
+              );
+              if (updatedHorse) {
+                return {
+                  ...existingHorse,
+                  odds: updatedHorse.odds || existingHorse.odds,
+                  popularity: updatedHorse.popularity || existingHorse.popularity
+                };
+              }
+              return existingHorse;
+            });
+            
+            await setDoc(raceRef, {
+              ...existingRace,
+              horses: newHorses,
+              oddsUpdatedAt: new Date().toISOString()
+            });
+          } else {
+            // 既存データがない場合はそのまま保存
+            await setDoc(raceRef, {
+              ...race,
+              updatedAt: new Date().toISOString()
+            });
+          }
+        } else {
+          // 全レース上書き
+          await setDoc(raceRef, {
+            ...race,
+            updatedAt: new Date().toISOString()
+          });
+        }
       }
       alert('Firestoreに保存しました！メイン画面で確認してください。');
       setPreviewRaces(null);
@@ -370,8 +407,23 @@ export default function AdminPage() {
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>✍️ 手動コピペ (フェイルセーフ用)</h2>
         <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '16px' }}>
-          自動取得が失敗した場合の予備機能です。「レース名」の次の行から「馬番 半角スペース 馬名」の形式で入力してください。
+          自動取得が失敗した場合の予備機能です。「レース名」の次の行から「馬番 半角スペース 馬名」の形式で入力してください。<br/>
+          または、スマホサイト等からコピーした「馬名＋オッズ・人気」のテキストを貼り付け、レースを選択して「オッズのみ更新」することもできます。
         </p>
+        <div className={styles.inputGroup} style={{ marginBottom: '8px' }}>
+          <select 
+            value={selectedRaceIndex} 
+            onChange={e => setSelectedRaceIndex(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+            className={styles.input}
+          >
+            <option value="all">すべてのレース (1~5) を解析・出馬表を上書き</option>
+            <option value="1">WIN1 のみを解析・オッズと人気をマージ更新</option>
+            <option value="2">WIN2 のみを解析・オッズと人気をマージ更新</option>
+            <option value="3">WIN3 のみを解析・オッズと人気をマージ更新</option>
+            <option value="4">WIN4 のみを解析・オッズと人気をマージ更新</option>
+            <option value="5">WIN5 のみを解析・オッズと人気をマージ更新</option>
+          </select>
+        </div>
         <div className={styles.inputGroup}>
           <textarea 
             value={manualText}

@@ -187,6 +187,49 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
     }
   };
 
+  const handleForceReset = async () => {
+    if (!confirm('本当に成績を保存せずにデータを強制リセットしますか？この操作は取り消せません。')) return;
+
+    setIsArchiving(true);
+    try {
+      const currentRaceIds = new Set(races.map(r => r.id));
+      const currentEventId = races.length > 0 ? (races[0] as any).eventId || 'sunday' : 'sunday';
+      const votesSnap = await getDocs(collection(db, 'votes'));
+
+      // 1. 投票データの削除
+      for (const docSnap of votesSnap.docs) {
+        const vote = docSnap.data();
+        if (currentRaceIds.has(vote.raceId)) {
+          await deleteDoc(doc(db, 'votes', docSnap.id));
+        }
+      }
+
+      // 2. レース結果の削除
+      for (const raceId of currentRaceIds) {
+        await deleteDoc(doc(db, 'results', raceId));
+      }
+
+      // 3. 出馬表のリセット
+      for (const race of races) {
+        const raceRef = doc(db, 'races', race.id);
+        await setDoc(raceRef, {
+          ...race,
+          raceName: `WIN${race.raceNumber}`,
+          horses: [],
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      const dayName = currentEventId === 'saturday' ? '土曜日' : '日曜日';
+      alert(`【${dayName}】のデータを強制リセットしました！`);
+    } catch (error) {
+      console.error(error);
+      alert('リセット中にエラーが発生しました');
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
   if (!isOpen) {
     return (
       <button 
@@ -297,10 +340,30 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
             borderRadius: '8px', 
             border: 'none', 
             cursor: isArchiving ? 'not-allowed' : 'pointer',
-            opacity: isArchiving ? 0.7 : 1
+            opacity: isArchiving ? 0.7 : 1,
+            width: '100%',
+            marginBottom: '12px'
           }}
         >
-          {isArchiving ? 'アーカイブ処理中...' : '🏁 今週の成績を集計してアーカイブ保存'}
+          {isArchiving ? '処理中...' : '🏁 今週の成績を集計してアーカイブ保存'}
+        </button>
+
+        <button 
+          onClick={handleForceReset}
+          disabled={isArchiving}
+          style={{ 
+            background: 'transparent', 
+            color: '#ff4444', 
+            border: '1px solid #ff4444', 
+            padding: '8px 16px', 
+            borderRadius: '8px', 
+            cursor: isArchiving ? 'not-allowed' : 'pointer',
+            opacity: isArchiving ? 0.7 : 1,
+            width: '100%',
+            fontSize: '12px'
+          }}
+        >
+          🗑️ 成績を保存せずにデータを強制リセット（次週準備用）
         </button>
       </div>
     </div>

@@ -213,8 +213,14 @@ export default function AdminPage() {
         if (selectedRaceIndex !== 'all') {
           // 単一レース更新時は対象のレースのみを保存する
           if (race.raceNumber === selectedRaceIndex) {
-            await setDoc(raceRef, {
+            // ドキュメントIDを確実に生成・固定する（IDズレの完全防止）
+            const targetId = `${eventId}_race${selectedRaceIndex}`;
+            const targetRaceRef = doc(db, 'races', targetId);
+            
+            await setDoc(targetRaceRef, {
               ...race,
+              id: targetId,
+              raceNumber: selectedRaceIndex,
               oddsUpdatedAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             });

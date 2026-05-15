@@ -120,8 +120,9 @@ export default function Home() {
       const fetchedRaces: Race[] = [];
       snapshot.docs.forEach(docSnap => {
         const data = docSnap.data() as Race;
-        // 互換性のため eventId が無いものは sunday として扱う
-        const raceEventId = (data as any).eventId || 'sunday';
+        const dataId = docSnap.id;
+        // ドキュメントID（例: saturday_race1）から曜日を判定。プレフィックスが無い古いデータはsunday扱い
+        const raceEventId = dataId.includes('_') ? dataId.split('_')[0] : ((data as any).eventId || 'sunday');
         if (raceEventId === currentEventId) {
           fetchedRaces.push(data);
         }

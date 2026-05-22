@@ -192,29 +192,46 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
 
     setIsArchiving(true);
     try {
-      const currentRaceIds = new Set(races.map(r => r.id));
       const currentEventId = races.length > 0 ? (races[0] as any).eventId || 'sunday' : 'sunday';
+      
+      const racesSnap = await getDocs(collection(db, 'races'));
+      const eventRaceDocs = racesSnap.docs.filter(d => {
+        const docId = d.id;
+        const raceEventId = docId.includes('_') ? docId.split('_')[0] : ((d.data() as any).eventId || 'sunday');
+        return raceEventId === currentEventId;
+      });
+      const allTargetRaceIds = new Set(eventRaceDocs.map(d => d.id));
+
       const votesSnap = await getDocs(collection(db, 'votes'));
 
-      // 1. 投票データの削除
+      // 1. 投票データの削除（ゴーストデータ分も含む）
       for (const docSnap of votesSnap.docs) {
         const vote = docSnap.data();
-        if (currentRaceIds.has(vote.raceId)) {
+        if (allTargetRaceIds.has(vote.raceId)) {
           await deleteDoc(doc(db, 'votes', docSnap.id));
         }
       }
 
-      // 2. レース結果の削除
-      for (const raceId of currentRaceIds) {
+      // 2. レース結果の削除（ゴーストデータ分も含む）
+      for (const raceId of allTargetRaceIds) {
         await deleteDoc(doc(db, 'results', raceId));
       }
 
-      // 3. 出馬表のリセット
-      for (const race of races) {
-        const raceRef = doc(db, 'races', race.id);
+      // 3. 出馬表の完全クリーンアップと再生成
+      // まず既存の対象曜日の全レースドキュメント（ゴーストデータ含む）を削除
+      for (const docSnap of eventRaceDocs) {
+        await deleteDoc(doc(db, 'races', docSnap.id));
+      }
+
+      // 確実にインデックス1〜5の5つのドキュメントだけを初期状態として再生成
+      for (let i = 1; i <= 5; i++) {
+        const newId = `${currentEventId}_race${i}`;
+        const raceRef = doc(db, 'races', newId);
         await setDoc(raceRef, {
-          ...race,
-          raceName: `WIN${race.raceNumber}`,
+          id: newId,
+          eventId: currentEventId,
+          raceNumber: i,
+          raceName: `WIN${i}`,
           horses: [],
           updatedAt: new Date().toISOString()
         });

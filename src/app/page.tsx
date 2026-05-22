@@ -168,13 +168,14 @@ export default function Home() {
   };
 
   // 確実なフィルタリング: 現在選択されている曜日(eventId)のレースのみを抽出
+  // ※万が一のゴーストデータ（_race6など）の混入を防ぐため、先頭5件のみに限定するフェイルセーフを追加
   const displayRaces = races.filter(race => {
     if (race.id.includes('_')) {
       return race.id.startsWith(currentEventId + '_');
     }
     // 古いデータ（_なし）はsundayとして扱う
     return currentEventId === 'sunday';
-  });
+  }).slice(0, 5);
 
   // 現在の曜日（表示中）のレースの消費ポイント合計を計算
   const totalPointsUsed = displayRaces.reduce((sum, race) => {

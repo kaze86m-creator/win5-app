@@ -112,20 +112,14 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  // 4. races コレクションの監視
+  // 4. races コレクションの監視 (全件取得)
   useEffect(() => {
     const racesRef = collection(db, 'races');
     const q = query(racesRef, orderBy('raceNumber'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedRaces: Race[] = [];
       snapshot.docs.forEach(docSnap => {
-        const data = docSnap.data() as Race;
-        const dataId = docSnap.id;
-        // ドキュメントID（例: saturday_race1）から曜日を判定。プレフィックスが無い古いデータはsunday扱い
-        const raceEventId = dataId.includes('_') ? dataId.split('_')[0] : ((data as any).eventId || 'sunday');
-        if (raceEventId === currentEventId) {
-          fetchedRaces.push(data);
-        }
+        fetchedRaces.push(docSnap.data() as Race);
       });
       setRaces(fetchedRaces);
     }, (error) => {
@@ -133,7 +127,7 @@ export default function Home() {
     });
 
     return () => unsubscribe();
-  }, [currentEventId]);
+  }, []);
 
   const handleUpdatePoint = async (horseId: string, raceId: string, currentMyPoint: number, delta: number) => {
     if (!userId) return;
@@ -173,14 +167,23 @@ export default function Home() {
     await signOut(auth);
   };
 
+  // 確実なフィルタリング: 現在選択されている曜日(eventId)のレースのみを抽出
+  const displayRaces = races.filter(race => {
+    if (race.id.includes('_')) {
+      return race.id.startsWith(currentEventId + '_');
+    }
+    // 古いデータ（_なし）はsundayとして扱う
+    return currentEventId === 'sunday';
+  });
+
   // 現在の曜日（表示中）のレースの消費ポイント合計を計算
-  const totalPointsUsed = races.reduce((sum, race) => {
+  const totalPointsUsed = displayRaces.reduce((sum, race) => {
     return sum + race.horses.reduce((horseSum, horse) => horseSum + (pointsData[horse.id] || 0), 0);
   }, 0);
-  const maxTotalPoints = races.length * userMaxPoints;
+  const maxTotalPoints = displayRaces.length * userMaxPoints;
 
   const favoriteHorses = [];
-  for (const race of races) {
+  for (const race of displayRaces) {
     for (const horse of race.horses) {
       const totalPoints = groupPointsData[horse.id] || 0;
       if (totalPoints >= 4) {
@@ -198,7 +201,7 @@ export default function Home() {
   // 生存状況の計算
   let isSurviving = true;
   let eliminatedRace = 0;
-  for (const race of races) {
+  for (const race of displayRaces) {
     const raceResult = resultsData[race.id];
     if (raceResult && raceResult.firstPlaceId) {
       // 結果が確定しているレース
@@ -342,7 +345,7 @@ export default function Home() {
               </div>
 
               <div className={styles.raceList}>
-                {races.map(race => (
+                {displayRaces.map(race => (
                   <RaceTable 
                     key={race.id} 
                     race={race} 

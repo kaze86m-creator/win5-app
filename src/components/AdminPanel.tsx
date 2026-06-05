@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from 'react';
 import styles from './AdminPanel.module.css';
@@ -39,7 +39,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
   const handleSaveResult = async (raceId: string) => {
     const selections = selectedHorses[raceId];
     if (!selections || !selections.firstPlaceId) {
-      alert("1着馬は必須です。");
+      alert("1逹鬥ｬ縺ｯ蠢・医〒縺吶・);
       return;
     }
 
@@ -51,17 +51,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
         thirdPlaceId: selections.thirdPlaceId || null,
         updatedAt: new Date().toISOString()
       });
-      alert('結果を保存しました！');
+      alert('邨先棡繧剃ｿ晏ｭ倥＠縺ｾ縺励◆・・);
     } catch (error) {
       console.error(error);
-      alert('エラーが発生しました');
+      alert('繧ｨ繝ｩ繝ｼ縺檎匱逕溘＠縺ｾ縺励◆');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleClearResult = async (raceId: string) => {
-    if (!confirm('このレースの結果を未確定に戻しますか？')) return;
+    if (!confirm('縺薙・繝ｬ繝ｼ繧ｹ縺ｮ邨先棡繧呈悴遒ｺ螳壹↓謌ｻ縺励∪縺吶°・・)) return;
     
     setIsSaving(true);
     try {
@@ -73,17 +73,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
       });
     } catch (error) {
       console.error(error);
-      alert('エラーが発生しました');
+      alert('繧ｨ繝ｩ繝ｼ縺檎匱逕溘＠縺ｾ縺励◆');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleArchive = async () => {
-    if (!confirm('今週の成績を集計してアーカイブ（保存）します。よろしいですか？\n※全レースの結果が確定している必要があります。')) return;
+    if (!confirm('莉企ｱ縺ｮ謌千ｸｾ繧帝寔險医＠縺ｦ繧｢繝ｼ繧ｫ繧､繝厄ｼ井ｿ晏ｭ假ｼ峨＠縺ｾ縺吶ゅｈ繧阪＠縺・〒縺吶°・歃n窶ｻ蜈ｨ繝ｬ繝ｼ繧ｹ縺ｮ邨先棡縺檎｢ｺ螳壹＠縺ｦ縺・ｋ蠢・ｦ√′縺ゅｊ縺ｾ縺吶・)) return;
 
-    if (Object.keys(resultsData).length < races.length) {
-      alert('全レースの結果が確定していません。');
+    const isAllCompleted = races.every(race => resultsData[race.id] && resultsData[race.id].firstPlaceId);
+    if (!isAllCompleted) {
+      alert('蜈ｨ繝ｬ繝ｼ繧ｹ縺ｮ邨先棡縺檎｢ｺ螳壹＠縺ｦ縺・∪縺帙ｓ縲・);
       return;
     }
 
@@ -107,7 +108,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
         const vote = docSnap.data();
         const { userId: vUserId, raceId, horseId } = vote;
 
-        // 現在表示されているイベント（曜日）の投票のみを集計対象とする
+        // 迴ｾ蝨ｨ陦ｨ遉ｺ縺輔ｌ縺ｦ縺・ｋ繧､繝吶Φ繝茨ｼ域屆譌･・峨・謚慕･ｨ縺ｮ縺ｿ繧帝寔險亥ｯｾ雎｡縺ｨ縺吶ｋ
         if (!currentRaceIds.has(raceId)) return;
 
         if (!userStatsMap[vUserId]) {
@@ -151,9 +152,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
         });
       }
 
-      // 3. 次週に向けたデータのリセット (対象曜日のみ)
+      // 3. 谺｡騾ｱ縺ｫ蜷代￠縺溘ョ繝ｼ繧ｿ縺ｮ繝ｪ繧ｻ繝・ヨ (蟇ｾ雎｡譖懈律縺ｮ縺ｿ)
       
-      // 3-1. 投票データの削除
+      // 3-1. 謚慕･ｨ繝・・繧ｿ縺ｮ蜑企勁
       for (const docSnap of votesSnap.docs) {
         const vote = docSnap.data();
         if (currentRaceIds.has(vote.raceId)) {
@@ -161,12 +162,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
         }
       }
 
-      // 3-2. レース結果の削除
+      // 3-2. 繝ｬ繝ｼ繧ｹ邨先棡縺ｮ蜑企勁
       for (const raceId of currentRaceIds) {
         await deleteDoc(doc(db, 'results', raceId));
       }
 
-      // 3-3. 出馬表のリセット
+      // 3-3. 蜃ｺ鬥ｬ陦ｨ縺ｮ繝ｪ繧ｻ繝・ヨ
       for (const race of races) {
         const raceRef = doc(db, 'races', race.id);
         await setDoc(raceRef, {
@@ -177,18 +178,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
         });
       }
 
-      const dayName = currentEventId === 'saturday' ? '土曜日' : '日曜日';
-      alert(`【${dayName}】の成績アーカイブと次週向けのリセットが完了しました！`);
+      const dayName = currentEventId === 'saturday' ? '蝨滓屆譌･' : '譌･譖懈律';
+      alert(`縲・{dayName}縲代・謌千ｸｾ繧｢繝ｼ繧ｫ繧､繝悶→谺｡騾ｱ蜷代￠縺ｮ繝ｪ繧ｻ繝・ヨ縺悟ｮ御ｺ・＠縺ｾ縺励◆・～);
     } catch (error) {
       console.error(error);
-      alert('アーカイブ中にエラーが発生しました');
+      alert('繧｢繝ｼ繧ｫ繧､繝紋ｸｭ縺ｫ繧ｨ繝ｩ繝ｼ縺檎匱逕溘＠縺ｾ縺励◆');
     } finally {
       setIsArchiving(false);
     }
   };
 
   const handleForceReset = async () => {
-    if (!confirm('本当に成績を保存せずにデータを強制リセットしますか？この操作は取り消せません。')) return;
+    if (!confirm('譛ｬ蠖薙↓謌千ｸｾ繧剃ｿ晏ｭ倥○縺壹↓繝・・繧ｿ繧貞ｼｷ蛻ｶ繝ｪ繧ｻ繝・ヨ縺励∪縺吶°・溘％縺ｮ謫堺ｽ懊・蜿悶ｊ豸医○縺ｾ縺帙ｓ縲・)) return;
 
     setIsArchiving(true);
     try {
@@ -204,27 +205,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
 
       const votesSnap = await getDocs(collection(db, 'votes'));
 
-      // 1. 投票データの削除（ゴーストデータ分も含む）
-      for (const docSnap of votesSnap.docs) {
+      // 1. 謚慕･ｨ繝・・繧ｿ縺ｮ蜑企勁・医ざ繝ｼ繧ｹ繝医ョ繝ｼ繧ｿ蛻・ｂ蜷ｫ繧・・      for (const docSnap of votesSnap.docs) {
         const vote = docSnap.data();
         if (allTargetRaceIds.has(vote.raceId)) {
           await deleteDoc(doc(db, 'votes', docSnap.id));
         }
       }
 
-      // 2. レース結果の削除（ゴーストデータ分も含む）
-      for (const raceId of allTargetRaceIds) {
+      // 2. 繝ｬ繝ｼ繧ｹ邨先棡縺ｮ蜑企勁・医ざ繝ｼ繧ｹ繝医ョ繝ｼ繧ｿ蛻・ｂ蜷ｫ繧・・      for (const raceId of allTargetRaceIds) {
         await deleteDoc(doc(db, 'results', raceId));
       }
 
-      // 3. 出馬表の完全クリーンアップと再生成
-      // まず既存の対象曜日の全レースドキュメント（ゴーストデータ含む）を削除
+      // 3. 蜃ｺ鬥ｬ陦ｨ縺ｮ螳悟・繧ｯ繝ｪ繝ｼ繝ｳ繧｢繝・・縺ｨ蜀咲函謌・      // 縺ｾ縺壽里蟄倥・蟇ｾ雎｡譖懈律縺ｮ蜈ｨ繝ｬ繝ｼ繧ｹ繝峨く繝･繝｡繝ｳ繝茨ｼ医ざ繝ｼ繧ｹ繝医ョ繝ｼ繧ｿ蜷ｫ繧・峨ｒ蜑企勁
       for (const docSnap of eventRaceDocs) {
         await deleteDoc(doc(db, 'races', docSnap.id));
       }
 
-      // 確実にインデックス1〜5の5つのドキュメントだけを初期状態として再生成
-      for (let i = 1; i <= 5; i++) {
+      // 遒ｺ螳溘↓繧､繝ｳ繝・ャ繧ｯ繧ｹ1縲・縺ｮ5縺､縺ｮ繝峨く繝･繝｡繝ｳ繝医□縺代ｒ蛻晄悄迥ｶ諷九→縺励※蜀咲函謌・      for (let i = 1; i <= 5; i++) {
         const newId = `${currentEventId}_race${i}`;
         const raceRef = doc(db, 'races', newId);
         await setDoc(raceRef, {
@@ -237,11 +234,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
         });
       }
 
-      const dayName = currentEventId === 'saturday' ? '土曜日' : '日曜日';
-      alert(`【${dayName}】のデータを強制リセットしました！`);
+      const dayName = currentEventId === 'saturday' ? '蝨滓屆譌･' : '譌･譖懈律';
+      alert(`縲・{dayName}縲代・繝・・繧ｿ繧貞ｼｷ蛻ｶ繝ｪ繧ｻ繝・ヨ縺励∪縺励◆・～);
     } catch (error) {
       console.error(error);
-      alert('リセット中にエラーが発生しました');
+      alert('繝ｪ繧ｻ繝・ヨ荳ｭ縺ｫ繧ｨ繝ｩ繝ｼ縺檎匱逕溘＠縺ｾ縺励◆');
     } finally {
       setIsArchiving(false);
     }
@@ -253,8 +250,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
         onClick={() => setIsOpen(true)}
         style={{ background: 'rgba(255, 255, 255, 0.1)', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', marginBottom: '16px', fontSize: '12px' }}
       >
-        ⚙️ レース結果入力・アーカイブパネルを開く
-      </button>
+        笞呻ｸ・繝ｬ繝ｼ繧ｹ邨先棡蜈･蜉帙・繧｢繝ｼ繧ｫ繧､繝悶ヱ繝阪Ν繧帝幕縺・      </button>
     );
   }
 
@@ -262,14 +258,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
     <div className={styles.adminPanel}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <div className={styles.adminTitle}>
-          ⚙️ レース結果入力 (1着〜3着)
+          笞呻ｸ・繝ｬ繝ｼ繧ｹ邨先棡蜈･蜉・(1逹縲・逹)
         </div>
         <button 
           onClick={() => setIsOpen(false)}
           style={{ background: 'transparent', color: '#ccc', border: 'none', cursor: 'pointer', fontSize: '12px' }}
         >
-          閉じる ✕
-        </button>
+          髢峨§繧・笨・        </button>
       </div>
 
       <div className={styles.raceSelectGroup}>
@@ -293,8 +288,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
                   disabled={isSaving}
                   style={{ flex: 1, minWidth: '120px' }}
                 >
-                  <option value="">-- 1着 --</option>
-                  {race.horses.map(h => <option key={h.id} value={h.id}>{h.number}番 {h.name}</option>)}
+                  <option value="">-- 1逹 --</option>
+                  {race.horses.map(h => <option key={h.id} value={h.id}>{h.number}逡ｪ {h.name}</option>)}
                 </select>
 
                 <select 
@@ -304,8 +299,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
                   disabled={isSaving}
                   style={{ flex: 1, minWidth: '120px' }}
                 >
-                  <option value="">-- 2着 --</option>
-                  {race.horses.map(h => <option key={h.id} value={h.id}>{h.number}番 {h.name}</option>)}
+                  <option value="">-- 2逹 --</option>
+                  {race.horses.map(h => <option key={h.id} value={h.id}>{h.number}逡ｪ {h.name}</option>)}
                 </select>
 
                 <select 
@@ -315,8 +310,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
                   disabled={isSaving}
                   style={{ flex: 1, minWidth: '120px' }}
                 >
-                  <option value="">-- 3着 --</option>
-                  {race.horses.map(h => <option key={h.id} value={h.id}>{h.number}番 {h.name}</option>)}
+                  <option value="">-- 3逹 --</option>
+                  {race.horses.map(h => <option key={h.id} value={h.id}>{h.number}逡ｪ {h.name}</option>)}
                 </select>
 
                 <button 
@@ -324,8 +319,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
                   disabled={isSaving || !sFirst}
                   onClick={() => handleSaveResult(race.id)}
                 >
-                  保存
-                </button>
+                  菫晏ｭ・                </button>
 
                 {currentWinner && (
                   <button 
@@ -333,8 +327,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
                     disabled={isSaving}
                     onClick={() => handleClearResult(race.id)}
                   >
-                    取消
-                  </button>
+                    蜿匁ｶ・                  </button>
                 )}
               </div>
             </div>
@@ -344,8 +337,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
 
       <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid #555', textAlign: 'center' }}>
         <p style={{ fontSize: '12px', color: '#aaa', marginBottom: '8px' }}>
-          全レース終了後、このボタンを押して参加メンバーの成績を保存してください。
-        </p>
+          蜈ｨ繝ｬ繝ｼ繧ｹ邨ゆｺ・ｾ後√％縺ｮ繝懊ち繝ｳ繧呈款縺励※蜿ょ刈繝｡繝ｳ繝舌・縺ｮ謌千ｸｾ繧剃ｿ晏ｭ倥＠縺ｦ縺上□縺輔＞縲・        </p>
         <button 
           onClick={handleArchive}
           disabled={isArchiving}
@@ -362,7 +354,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
             marginBottom: '12px'
           }}
         >
-          {isArchiving ? '処理中...' : '🏁 今週の成績を集計してアーカイブ保存'}
+          {isArchiving ? '蜃ｦ逅・ｸｭ...' : '潤 莉企ｱ縺ｮ謌千ｸｾ繧帝寔險医＠縺ｦ繧｢繝ｼ繧ｫ繧､繝紋ｿ晏ｭ・}
         </button>
 
         <button 
@@ -380,10 +372,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ races, resultsData, user
             fontSize: '12px'
           }}
         >
-          🗑️ 成績を保存せずにデータを強制リセット（次週準備用）
-        </button>
+          卵・・謌千ｸｾ繧剃ｿ晏ｭ倥○縺壹↓繝・・繧ｿ繧貞ｼｷ蛻ｶ繝ｪ繧ｻ繝・ヨ・域ｬ｡騾ｱ貅門ｙ逕ｨ・・        </button>
       </div>
     </div>
   );
 };
+
+
 
